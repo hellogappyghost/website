@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Tamagotchi Virtual Pet</title>
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #d6f0ff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 30px;
+    color: #333;
+    user-select: none;
+  }
+  h1 {
+    margin-bottom: 20px;
+  }
+  #pet-container {
+    width: 220px;
+    height: 220px;
+    background: #fff;
+    border: 6px solid #4a90e2;
+    border-radius: 25px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    margin-bottom: 25px;
+  }
+  #pet-face {
+    font-size: 100px;
+    user-select: none;
+  }
+  #status-bars {
+    width: 90%;
+  }
+  .status-label {
+    font-weight: 600;
+    margin-top: 10px;
+  }
+  .bar-container {
+    background: #ccc;
+    border-radius: 10px;
+    height: 15px;
+    margin-top: 5px;
+    overflow: hidden;
+  }
+  .bar-fill {
+    height: 100%;
+    border-radius: 10px;
+    transition: width 0.4s ease;
+  }
+  #hunger-bar {
+    background: #f44336;
+  }
+  #happiness-bar {
+    background: #ffb300;
+  }
+  #energy-bar {
+    background: #4caf50;
+  }
+  #buttons {
+    margin-top: 20px;
+    display: flex;
+    gap: 15px;
+  }
+  button {
+    background: #4a90e2;
+    color: white;
+    border: none;
+    padding: 12px 18px;
+    font-size: 1rem;
+    border-radius: 10px;
+    cursor: pointer;
+    box-shadow: 0 4px 8px #3a70b8;
+    transition: background 0.3s ease;
+    flex: 1;
+  }
+  button:hover:not(:disabled) {
+    background: #357abd;
+  }
+  button:disabled {
+    background: #9bbce6;
+    cursor: default;
+  }
+  #message {
+    margin-top: 15px;
+    font-style: italic;
+    min-height: 22px;
+    height: 22px;
+  }
+  /* Pet expressions */
+  .face-happy {
+    color: #ffb300;
+  }
+  .face-hungry {
+    color: #f44336;
+  }
+  .face-sleepy {
+    color: #607d8b;
+  }
+</style>
+</head>
+<body>
+
+<h1>Tamagotchi Virtual Pet</h1>
+<div id="pet-container">
+  <div id="pet-face" class="face-happy">😊</div>
+</div>
+
+<div id="status-bars">
+  <div class="status-label">Hunger</div>
+  <div class="bar-container"><div id="hunger-bar" class="bar-fill" style="width: 50%;"></div></div>
+
+  <div class="status-label">Happiness</div>
+  <div class="bar-container"><div id="happiness-bar" class="bar-fill" style="width: 50%;"></div></div>
+
+  <div class="status-label">Energy</div>
+  <div class="bar-container"><div id="energy-bar" class="bar-fill" style="width: 50%;"></div></div>
+</div>
+
+<div id="buttons">
+  <button id="feed-btn">Feed 🍎</button>
+  <button id="play-btn">Play 🎾</button>
+  <button id="sleep-btn">Sleep 💤</button>
+</div>
+
+<div id="message"></div>
+
+<script>
+  const petFace = document.getElementById('pet-face');
+  const hungerBar = document.getElementById('hunger-bar');
+  const happinessBar = document.getElementById('happiness-bar');
+  const energyBar = document.getElementById('energy-bar');
+  const messageEl = document.getElementById('message');
+
+  const feedBtn = document.getElementById('feed-btn');
+  const playBtn = document.getElementById('play-btn');
+  const sleepBtn = document.getElementById('sleep-btn');
+
+  // Pet state from 0 (bad) to 100 (good)
+  let pet = {
+    hunger: 50,
+    happiness: 50,
+    energy: 50,
+    sleeping: false
+  };
+
+  // Save and load from localStorage
+  function savePet() {
+    localStorage.setItem('tamagotchiPet', JSON.stringify(pet));
+  }
+
+  function loadPet() {
+    const saved = localStorage.getItem('tamagotchiPet');
+    if (saved) {
+      pet = JSON.parse(saved);
+      // Clamp values
+      pet.hunger = clamp(pet.hunger, 0, 100);
+      pet.happiness = clamp(pet.happiness, 0, 100);
+      pet.energy = clamp(pet.energy, 0, 100);
+      pet.sleeping = !!pet.sleeping;
+    }
+  }
+
+  function clamp(num, min, max) {
+    return Math.min(Math.max(num, min), max);
+  }
+
+  // Update UI bars and face
+  function updateUI() {
+    hungerBar.style.width = pet.hunger + '%';
+    happinessBar.style.width = pet.happiness + '%';
+    energyBar.style.width = pet.energy + '%';
+
+    // Update pet face expression
+    if (pet.sleeping) {
+      petFace.textContent = '😴';
+      petFace.className = 'face-sleepy';
+    } else if (pet.hunger < 30) {
+      petFace.textContent = '😣';
+      petFace.className = 'face-hungry';
+    } else if (pet.happiness > 70) {
+      petFace.textContent = '😄';
+      petFace.className = 'face-happy';
+    } else if (pet.happiness < 30) {
+      petFace.textContent = '😞';
+      petFace.className = 'face-hungry';
+    } else {
+      petFace.textContent = '🙂';
+      petFace.className = 'face-happy';
+    }
+
+    // Enable/disable buttons when sleeping
+    feedBtn.disabled = pet.sleeping;
+    playBtn.disabled = pet.sleeping;
+    sleepBtn.disabled = pet.sleeping;
+
+    savePet();
+  }
+
+  // Show temporary message
+  function showMessage(text) {
+    messageEl.textContent = text;
+    setTimeout(() => {
+      if (messageEl.textContent === text) messageEl.textContent = '';
+    }, 3000);
+  }
+
+  // Actions
+  feedBtn.onclick = () => {
+    if (pet.sleeping) return;
+    pet.hunger += 20;
+    pet.hunger = clamp(pet.hunger, 0, 100);
+    showMessage('Yum! Thanks for feeding me! 🍎');
+    updateUI();
+  };
+
+  playBtn.onclick = () => {
+    if (pet.sleeping) return;
+    if (pet.energy < 20) {
+      showMessage("I'm too tired to play... 😴");
+      return;
+    }
+    pet.happiness += 20;
+    pet.energy -= 15;
+    pet.hunger -= 10;
+    pet.happiness = clamp(pet.happiness, 0, 100);
+    pet.energy = clamp(pet.energy, 0, 100);
+    pet.hunger = clamp(pet.hunger, 0, 100);
+    showMessage('That was fun! 🎾');
+    updateUI();
+  };
+
+  sleepBtn.onclick = () => {
+    if (pet.sleeping) return;
+    pet.sleeping = true;
+    showMessage('Going to sleep... 💤');
+    updateUI();
+
+    // Sleep for 10 seconds (simulate)
+    setTimeout(() => {
+      pet.sleeping = false;
+      pet.energy += 50;
+      pet.energy = clamp(pet.energy, 0, 100);
+      showMessage("I'm awake and rested! 😄");
+      updateUI();
+    }, 10000);
+  };
+
+  // Automatic stat decay every 15 seconds
+  setInterval(() => {
+    if (!pet.sleeping) {
+      pet.hunger -= 5;    // gets hungrier
+      pet.happiness -= 3; // gets sadder
+      pet.energy -= 4;    // loses energy
+      pet.hunger = clamp(pet.hunger, 0, 100);
+      pet.happiness = clamp(pet.happiness, 0, 100);
+      pet.energy = clamp(pet.energy, 0, 100);
+      updateUI();
+    }
+  }, 15000);
+
+  loadPet();
+  updateUI();
+</script>
+
+</body>
+</html>
