@@ -1,73 +1,599 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Welcome to My Homepage</title>
+  <meta charset="UTF-8" />
+  <title>MinecraftTube</title>
   <style>
     body {
       margin: 0;
+      background-color: #121212;
+      color: white;
       font-family: Arial, sans-serif;
-      background-color: #f4f4f4;
     }
+
     header {
-      background-color: #333;
-      color: #fff;
-      padding: 20px 0;
-      text-align: center;
-    }
-    nav {
-      background-color: #444;
+      background-color: #202020;
+      padding: 15px 20px;
+      font-size: 24px;
+      font-weight: bold;
+      color: #00ff00;
       display: flex;
-      justify-content: center;
+      justify-content: space-between;
+      align-items: center;
+      position: relative;
+      z-index: 1;
     }
-    nav a {
-      color: #fff;
-      padding: 14px 20px;
-      text-decoration: none;
-      display: inline-block;
+
+    input[type="text"] {
+      padding: 8px;
+      font-size: 16px;
+      border-radius: 5px;
+      border: none;
+      outline: none;
+      width: 250px;
     }
-    nav a:hover {
-      background-color: #555;
+
+    .video-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 20px;
+      padding: 20px;
+      position: relative;
+      z-index: 1;
     }
-    main {
-      padding: 40px;
-      text-align: center;
+
+    .video {
+      background-color: #1e1e1e;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 0 10px #000;
+      cursor: pointer;
+      padding: 10px;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
-    footer {
-      background-color: #333;
-      color: #ccc;
-      text-align: center;
-      padding: 10px 0;
-      position: fixed;
-      bottom: 0;
+
+    .thumbnail {
       width: 100%;
+      height: 180px;
+      object-fit: cover;
+      border-radius: 6px;
+      pointer-events: none;
+    }
+
+    .video-title {
+      margin-top: 8px;
+      font-size: 16px;
+      pointer-events: none;
+      user-select: none;
+      text-align: center;
+    }
+
+    .video-channel {
+      margin-top: 4px;
+      font-size: 12px;
+      color: #00ff00;
+      pointer-events: none;
+      user-select: none;
+      text-align: center;
+    }
+
+    .player-container {
+      width: 100%;
+      max-width: 640px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: white;
+      user-select: none;
+    }
+
+    .iframe-wrapper {
+      position: relative;
+      width: 100%;
+      height: 360px;
+    }
+
+    .iframe-wrapper iframe {
+      width: 100%;
+      height: 100%;
+      border-radius: 10px;
+      display: block;
+    }
+
+    .iframe-overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      z-index: 10;
+      background: transparent;
+      cursor: default;
+    }
+
+    .controls {
+      margin: 10px 0 0;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .controls button {
+      background-color: #00ff00;
+      border: none;
+      padding: 6px 12px;
+      font-weight: bold;
+      color: black;
+      border-radius: 5px;
+      cursor: pointer;
+      flex: 1 1 80px;
+    }
+
+    .load-more-btn {
+      grid-column: 1 / -1;
+      justify-self: center;
+      background-color: #00ff00;
+      border: none;
+      padding: 12px 24px;
+      font-weight: bold;
+      color: black;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 20px 0;
+    }
+
+    .load-more-btn:hover {
+      background-color: #00cc00;
+    }
+
+    .load-more-btn:disabled {
+      background-color: #666;
+      cursor: not-allowed;
+    }
+
+    .controls button:hover {
+      background-color: #00cc00;
+    }
+
+    .controls input[type="range"] {
+      -webkit-appearance: none;
+      width: 100px;
+      height: 5px;
+      background: #444;
+      border-radius: 5px;
+      cursor: pointer;
+      flex: 1 1 150px;
+    }
+
+    .controls input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 15px;
+      height: 15px;
+      background: #00ff00;
+      border-radius: 50%;
+      cursor: pointer;
+      border: none;
+    }
+
+    .time {
+      min-width: 50px;
+      font-family: monospace;
+      text-align: center;
+      flex: 0 0 auto;
+    }
+
+    .status-message {
+      padding: 20px;
+      font-weight: bold;
+      grid-column: 1 / -1;
+      text-align: center;
+    }
+
+    .loading-message {
+      color: #00ff00;
+    }
+
+    .error-message {
+      color: #ff4c4c;
+    }
+
+    .info-message {
+      color: #ffaa00;
+    }
+
+    #videoOverlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #121212;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 20px;
+      z-index: 9999;
+      overflow-y: auto;
+    }
+
+    #closeBtn {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      background-color: #00ff00;
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      font-size: 24px;
+      font-weight: bold;
+      color: black;
+      cursor: pointer;
+      z-index: 10000;
+      line-height: 40px;
+      text-align: center;
+      user-select: none;
+    }
+    #closeBtn:hover {
+      background-color: #00cc00;
     }
   </style>
 </head>
 <body>
-
   <header>
-    <h1>My Cool Website</h1>
-    <p>Welcome to the homepage!</p>
+    <div>MinecraftTube</div>
+    <input type="text" id="searchBar" placeholder="Search Minecraft videos..." />
   </header>
 
-  <nav>
-    <a href="#">Home</a>
-    <a href="#">About</a>
-    <a href="#">Projects</a>
-    <a href="#">Contact</a>
-  </nav>
+  <div class="video-grid" id="videoGrid"></div>
 
-  <main>
-    <h2>Hello there!</h2>
-    <p>This is the homepage of your website. You can add more sections here.</p>
-    <p>Feel free to customize the layout, colors, and content.</p>
-  </main>
+  <div id="videoOverlay">
+    <button id="closeBtn" title="Close Video">&times;</button>
+    <div class="player-container" id="overlayPlayerContainer">
+      <div class="iframe-wrapper">
+        <div class="iframe-overlay"></div>
+        <div id="overlayPlayer"></div>
+      </div>
+      <div class="controls">
+        <button id="playPauseBtn">Play</button>
+        <button id="muteBtn">Mute</button>
+        <label>
+          Volume
+          <input type="range" id="volumeSlider" min="0" max="100" value="100" />
+        </label>
+        <label>
+          Seek
+          <input type="range" id="seekSlider" min="0" max="100" value="0" />
+        </label>
+        <div class="time" id="currentTime">0:00</div> /
+        <div class="time" id="duration">0:00</div>
+      </div>
+      <div class="video-title" id="overlayVideoTitle" style="margin-top:10px; font-size:18px; text-align:center;"></div>
+    </div>
+  </div>
 
-  <footer>
-    &copy; 2025 Your Name. All rights reserved.
-  </footer>
+  <script src="https://www.youtube.com/iframe_api"></script>
+  <script>
+    const API_KEY = 'AIzaSyBKkjewbezrTpBEBadKlRYXrw5NdqcD9Qk';
+    const videoGrid = document.getElementById('videoGrid');
+    const searchBar = document.getElementById('searchBar');
 
+    // Overlay elements
+    const videoOverlay = document.getElementById('videoOverlay');
+    const closeBtn = document.getElementById('closeBtn');
+    const overlayPlayerTitle = document.getElementById('overlayVideoTitle');
+    const playPauseBtn = document.getElementById('playPauseBtn');
+    const muteBtn = document.getElementById('muteBtn');
+    const volumeSlider = document.getElementById('volumeSlider');
+    const seekSlider = document.getElementById('seekSlider');
+    const currentTimeElem = document.getElementById('currentTime');
+    const durationElem = document.getElementById('duration');
+
+    let overlayPlayer;
+    let duration = 0;
+    let updateInterval;
+    let currentVideoId = null;
+    let currentQuery = null;
+    let nextPageToken = null;
+    let isLoading = false;
+
+    // Enhanced Minecraft detection with better keywords and patterns
+    function isMinecraftVideo(item) {
+      const title = item.snippet.title.toLowerCase();
+      const description = item.snippet.description ? item.snippet.description.toLowerCase() : '';
+      const tags = item.snippet.tags ? item.snippet.tags.join(' ').toLowerCase() : '';
+      const channelTitle = item.snippet.channelTitle.toLowerCase();
+      
+      // Comprehensive Minecraft keywords
+      const minecraftKeywords = [
+        'minecraft', '#minecraft', 'mc ', ' mc', 'mcyt', 'mojang',
+        'creeper', 'enderman', 'villager', 'steve', 'alex',
+        'nether', 'overworld', 'end dimension', 'ender dragon',
+        'redstone', 'diamond', 'emerald', 'netherite',
+        'crafting', 'mining', 'building', 'survival',
+        'creative mode', 'hardcore', 'speedrun',
+        'mod', 'modded', 'forge', 'fabric',
+        'server', 'smp', 'multiplayer',
+        'pixelmon', 'skyblock', 'bedwars', 'skywars',
+        'hermitcraft', 'dream smp', 'lifesteal'
+      ];
+
+      // Check all text fields for minecraft keywords
+      const allText = `${title} ${description} ${tags} ${channelTitle}`;
+      
+      return minecraftKeywords.some(keyword => allText.includes(keyword));
+    }
+
+    async function searchYouTube(query, loadMore = false) {
+      if (!loadMore) {
+        currentQuery = query;
+        nextPageToken = null;
+      }
+      
+      const minecraftQuery = query.toLowerCase().includes('minecraft') ? query : `${query} minecraft`;
+      let url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=50&q=${encodeURIComponent(minecraftQuery)}&key=${API_KEY}`;
+      
+      if (loadMore && nextPageToken) {
+        url += `&pageToken=${nextPageToken}`;
+      }
+
+      if (!loadMore) {
+        videoGrid.innerHTML = '<p class="status-message loading-message">Loading videos...</p>';
+      }
+
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+
+        if (data.error) {
+          throw new Error(data.error.message);
+        }
+
+        if (!data.items || data.items.length === 0) {
+          if (!loadMore) {
+            videoGrid.innerHTML = '<p class="status-message info-message">No videos found.</p>';
+          }
+          return;
+        }
+
+        const videoIds = data.items.map(item => item.id.videoId).join(',');
+        
+        const detailsUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoIds}&key=${API_KEY}`;
+        const detailsRes = await fetch(detailsUrl);
+        const detailsData = await detailsRes.json();
+        
+        if (detailsData.error) {
+          throw new Error(detailsData.error.message);
+        }
+
+        nextPageToken = data.nextPageToken;
+
+        const filteredItems = (detailsData.items || []).filter(item => {
+          return isMinecraftVideo(item);
+        }).map(item => ({
+          id: { videoId: item.id },
+          snippet: item.snippet
+        }));
+
+        if (!loadMore && filteredItems.length === 0) {
+          videoGrid.innerHTML = '<p class="status-message info-message">No Minecraft videos found.</p>';
+          return;
+        }
+
+        displayVideos(filteredItems, 'Minecraft Videos', loadMore);
+        
+      } catch (err) {
+        videoGrid.innerHTML = '<p class="status-message error-message">Failed to load videos. Check your API key or quota.</p>';
+        console.error('Search error:', err);
+      }
+    }
+
+    function displayVideos(items, title, append = false) {
+      if (!append) {
+        videoGrid.innerHTML = '';
+      } else {
+        const existingBtn = document.querySelector('.load-more-btn');
+        if (existingBtn) {
+          existingBtn.remove();
+        }
+      }
+
+      items.forEach(item => {
+        const videoId = item.id.videoId;
+        const videoTitle = item.snippet.title;
+        const channelTitle = item.snippet.channelTitle;
+        const thumbnail = item.snippet.thumbnails.medium.url;
+
+        const video = document.createElement('div');
+        video.className = 'video';
+        video.setAttribute('data-video-id', videoId);
+
+        video.innerHTML = `
+          <img class="thumbnail" src="${thumbnail}" alt="${videoTitle}" />
+          <div class="video-title">${videoTitle}</div>
+          <div class="video-channel">${channelTitle}</div>
+        `;
+
+        video.addEventListener('click', () => openOverlay(videoId, videoTitle));
+        videoGrid.appendChild(video);
+      });
+
+      if (nextPageToken) {
+        const loadMoreBtn = document.createElement('button');
+        loadMoreBtn.className = 'load-more-btn';
+        loadMoreBtn.textContent = 'Load More Videos';
+        loadMoreBtn.addEventListener('click', loadMoreVideos);
+        videoGrid.appendChild(loadMoreBtn);
+      }
+    }
+
+    async function loadMoreVideos() {
+      if (isLoading || !nextPageToken || !currentQuery) return;
+      
+      isLoading = true;
+      const loadMoreBtn = document.querySelector('.load-more-btn');
+      if (loadMoreBtn) {
+        loadMoreBtn.textContent = 'Loading...';
+        loadMoreBtn.disabled = true;
+      }
+
+      try {
+        await searchYouTube(currentQuery, true);
+      } catch (error) {
+        console.error('Error loading more videos:', error);
+      } finally {
+        isLoading = false;
+      }
+    }
+
+    function openOverlay(videoId, title) {
+      currentVideoId = videoId;
+      overlayPlayerTitle.textContent = title;
+      videoOverlay.style.display = 'flex';
+
+      if (overlayPlayer) {
+        overlayPlayer.loadVideoById(videoId);
+      } else {
+        overlayPlayer = new YT.Player('overlayPlayer', {
+          height: '360',
+          width: '640',
+          videoId: videoId,
+          playerVars: {
+            controls: 0,
+            modestbranding: 1,
+            rel: 0,
+            fs: 0,
+            disablekb: 1,
+          },
+          events: {
+            onReady: onPlayerReady,
+            onStateChange: onPlayerStateChange,
+          },
+        });
+      }
+    }
+
+    function closeOverlay() {
+      videoOverlay.style.display = 'none';
+      if (overlayPlayer) {
+        overlayPlayer.stopVideo();
+      }
+      playPauseBtn.textContent = 'Play';
+      muteBtn.textContent = 'Mute';
+      volumeSlider.value = 100;
+      seekSlider.value = 0;
+      currentTimeElem.textContent = '0:00';
+      durationElem.textContent = '0:00';
+      currentVideoId = null;
+
+      if (updateInterval) {
+        clearInterval(updateInterval);
+        updateInterval = null;
+      }
+    }
+
+    function formatTime(seconds) {
+      const min = Math.floor(seconds / 60);
+      const sec = Math.floor(seconds % 60);
+      return `${min}:${sec.toString().padStart(2, '0')}`;
+    }
+
+    function onPlayerReady(event) {
+      duration = overlayPlayer.getDuration();
+      durationElem.textContent = formatTime(duration);
+      volumeSlider.value = overlayPlayer.getVolume();
+
+      if (updateInterval) clearInterval(updateInterval);
+      updateInterval = setInterval(() => {
+        if (!overlayPlayer || !overlayPlayer.getCurrentTime) return;
+        const current = overlayPlayer.getCurrentTime();
+        currentTimeElem.textContent = formatTime(current);
+        const dur = overlayPlayer.getDuration();
+        if (dur !== duration) {
+          duration = dur;
+          durationElem.textContent = formatTime(duration);
+        }
+        if (duration > 0) {
+          seekSlider.value = (current / duration) * 100;
+        }
+      }, 500);
+    }
+
+    function onPlayerStateChange(event) {
+      if (event.data === YT.PlayerState.PLAYING) {
+        playPauseBtn.textContent = 'Pause';
+      } else {
+        playPauseBtn.textContent = 'Play';
+      }
+    }
+
+    // Control event listeners
+    playPauseBtn.onclick = () => {
+      if (!overlayPlayer) return;
+      const state = overlayPlayer.getPlayerState();
+      if (state === YT.PlayerState.PLAYING) {
+        overlayPlayer.pauseVideo();
+      } else {
+        overlayPlayer.playVideo();
+      }
+    };
+
+    muteBtn.onclick = () => {
+      if (!overlayPlayer) return;
+      if (overlayPlayer.isMuted()) {
+        overlayPlayer.unMute();
+        muteBtn.textContent = 'Mute';
+        volumeSlider.value = overlayPlayer.getVolume();
+      } else {
+        overlayPlayer.mute();
+        muteBtn.textContent = 'Unmute';
+        volumeSlider.value = 0;
+      }
+    };
+
+    volumeSlider.oninput = (e) => {
+      if (!overlayPlayer) return;
+      const vol = parseInt(e.target.value);
+      overlayPlayer.setVolume(vol);
+      if (vol === 0) {
+        overlayPlayer.mute();
+        muteBtn.textContent = 'Unmute';
+      } else {
+        overlayPlayer.unMute();
+        muteBtn.textContent = 'Mute';
+      }
+    };
+
+    let seeking = false;
+    seekSlider.onmousedown = () => (seeking = true);
+    seekSlider.onmouseup = (e) => {
+      if (!overlayPlayer) return;
+      seeking = false;
+      const seekTo = (parseFloat(e.target.value) / 100) * duration;
+      overlayPlayer.seekTo(seekTo, true);
+    };
+    seekSlider.oninput = (e) => {
+      if (!seeking) return;
+      const seekTo = (parseFloat(e.target.value) / 100) * duration;
+      currentTimeElem.textContent = formatTime(seekTo);
+    };
+
+    closeBtn.onclick = closeOverlay;
+
+    // Load default videos on page load
+    searchYouTube('minecraft');
+
+    // Search on enter key
+    searchBar.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        const query = searchBar.value.trim();
+        if (query.length > 0) {
+          searchYouTube(query);
+        }
+      }
+    });
+  </script>
 </body>
 </html>
