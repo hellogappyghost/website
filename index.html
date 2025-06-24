@@ -3,271 +3,339 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Tamagotchi Virtual Pet</title>
+<title>Peer-to-Peer Chat (GitHub Pages)</title>
 <style>
   body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: #d6f0ff;
-    display: flex;
-    flex-direction: column;
+    font-family: Arial, sans-serif;
+    margin: 0; padding: 0;
+    display: flex; flex-direction: column;
     align-items: center;
-    padding: 30px;
-    color: #333;
+    background: #282c34;
+    color: #eee;
+    height: 100vh;
+  }
+  header {
+    padding: 20px;
+    font-size: 1.8rem;
+    font-weight: bold;
     user-select: none;
   }
-  h1 {
-    margin-bottom: 20px;
-  }
-  #pet-container {
-    width: 220px;
-    height: 220px;
-    background: #fff;
-    border: 6px solid #4a90e2;
-    border-radius: 25px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.25);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    margin-bottom: 25px;
-  }
-  #pet-face {
-    font-size: 100px;
-    user-select: none;
-  }
-  #status-bars {
+  #room-container, #chat-container {
     width: 90%;
-  }
-  .status-label {
-    font-weight: 600;
-    margin-top: 10px;
-  }
-  .bar-container {
-    background: #ccc;
-    border-radius: 10px;
-    height: 15px;
-    margin-top: 5px;
-    overflow: hidden;
-  }
-  .bar-fill {
-    height: 100%;
-    border-radius: 10px;
-    transition: width 0.4s ease;
-  }
-  #hunger-bar {
-    background: #f44336;
-  }
-  #happiness-bar {
-    background: #ffb300;
-  }
-  #energy-bar {
-    background: #4caf50;
-  }
-  #buttons {
+    max-width: 500px;
+    background: #3a3f4b;
+    border-radius: 8px;
+    padding: 15px;
+    box-sizing: border-box;
     margin-top: 20px;
-    display: flex;
-    gap: 15px;
+  }
+  input[type=text] {
+    width: calc(100% - 110px);
+    padding: 8px;
+    font-size: 1rem;
+    border-radius: 5px;
+    border: none;
+    margin-right: 10px;
+    box-sizing: border-box;
   }
   button {
-    background: #4a90e2;
-    color: white;
+    background: #61dafb;
     border: none;
-    padding: 12px 18px;
-    font-size: 1rem;
-    border-radius: 10px;
+    padding: 9px 15px;
+    font-weight: bold;
+    border-radius: 5px;
     cursor: pointer;
-    box-shadow: 0 4px 8px #3a70b8;
     transition: background 0.3s ease;
-    flex: 1;
+    color: #282c34;
+    font-size: 1rem;
   }
-  button:hover:not(:disabled) {
-    background: #357abd;
+  button:hover {
+    background: #52c7ea;
   }
-  button:disabled {
-    background: #9bbce6;
-    cursor: default;
-  }
-  #message {
+  #messages {
+    height: 300px;
+    background: #1e222a;
+    border-radius: 5px;
+    padding: 10px;
+    overflow-y: auto;
     margin-top: 15px;
-    font-style: italic;
-    min-height: 22px;
-    height: 22px;
+    font-size: 1rem;
   }
-  /* Pet expressions */
-  .face-happy {
-    color: #ffb300;
+  .message {
+    margin-bottom: 10px;
   }
-  .face-hungry {
-    color: #f44336;
+  .message.you {
+    color: #61dafb;
   }
-  .face-sleepy {
-    color: #607d8b;
+  .message.peer {
+    color: #a0e7a0;
+  }
+  #input-container {
+    margin-top: 15px;
+    display: flex;
+  }
+  #input-message {
+    flex-grow: 1;
+    padding: 8px;
+    font-size: 1rem;
+    border-radius: 5px;
+    border: none;
   }
 </style>
 </head>
 <body>
 
-<h1>Tamagotchi Virtual Pet</h1>
-<div id="pet-container">
-  <div id="pet-face" class="face-happy">😊</div>
+<header>Peer-to-Peer Chat (GitHub Pages)</header>
+
+<div id="room-container">
+  <button id="create-room-btn">Create Room</button>
+  <div style="margin-top: 15px;">
+    <input type="text" id="room-id-input" placeholder="Enter Room ID to Join" autocomplete="off"/>
+    <button id="join-room-btn">Join Room</button>
+  </div>
+  <div id="room-info" style="margin-top:15px; word-break: break-word;"></div>
 </div>
 
-<div id="status-bars">
-  <div class="status-label">Hunger</div>
-  <div class="bar-container"><div id="hunger-bar" class="bar-fill" style="width: 50%;"></div></div>
-
-  <div class="status-label">Happiness</div>
-  <div class="bar-container"><div id="happiness-bar" class="bar-fill" style="width: 50%;"></div></div>
-
-  <div class="status-label">Energy</div>
-  <div class="bar-container"><div id="energy-bar" class="bar-fill" style="width: 50%;"></div></div>
+<div id="chat-container" style="display:none;">
+  <div id="messages"></div>
+  <div id="input-container">
+    <input type="text" id="input-message" placeholder="Type your message..." autocomplete="off"/>
+    <button id="send-btn">Send</button>
+  </div>
 </div>
-
-<div id="buttons">
-  <button id="feed-btn">Feed 🍎</button>
-  <button id="play-btn">Play 🎾</button>
-  <button id="sleep-btn">Sleep 💤</button>
-</div>
-
-<div id="message"></div>
 
 <script>
-  const petFace = document.getElementById('pet-face');
-  const hungerBar = document.getElementById('hunger-bar');
-  const happinessBar = document.getElementById('happiness-bar');
-  const energyBar = document.getElementById('energy-bar');
-  const messageEl = document.getElementById('message');
+  // Globals
+  let localConnection;
+  let dataChannel;
+  let isInitiator = false;
 
-  const feedBtn = document.getElementById('feed-btn');
-  const playBtn = document.getElementById('play-btn');
-  const sleepBtn = document.getElementById('sleep-btn');
+  const roomContainer = document.getElementById('room-container');
+  const chatContainer = document.getElementById('chat-container');
+  const roomInfo = document.getElementById('room-info');
+  const messagesDiv = document.getElementById('messages');
+  const inputMessage = document.getElementById('input-message');
 
-  // Pet state from 0 (bad) to 100 (good)
-  let pet = {
-    hunger: 50,
-    happiness: 50,
-    energy: 50,
-    sleeping: false
+  // Buttons and inputs
+  const createRoomBtn = document.getElementById('create-room-btn');
+  const joinRoomBtn = document.getElementById('join-room-btn');
+  const roomIdInput = document.getElementById('room-id-input');
+  const sendBtn = document.getElementById('send-btn');
+
+  // Signaling via manual copy-paste approach
+
+  // Utility for creating random room ID (6 char alphanumeric)
+  function generateRoomId() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // avoid confusing chars
+    let result = '';
+    for (let i = 0; i < 6; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+  }
+
+  // Simple in-memory signaling server substitute using URL hash for demo
+  // Note: This only works if both users coordinate sharing signaling data manually.
+
+  // Peer connection config (STUN servers only)
+  const config = {
+    iceServers: [
+      { urls: 'stun:stun.l.google.com:19302' },
+    ]
   };
 
-  // Save and load from localStorage
-  function savePet() {
-    localStorage.setItem('tamagotchiPet', JSON.stringify(pet));
+  // Set up local peer connection and data channel for initiator
+  async function createRoom() {
+    isInitiator = true;
+    localConnection = new RTCPeerConnection(config);
+
+    dataChannel = localConnection.createDataChannel("chat");
+    setupDataChannel();
+
+    localConnection.onicecandidate = e => {
+      if (e.candidate) {
+        // Add ICE candidate to signaling info
+        addIceCandidateToOffer(e.candidate);
+      }
+    };
+
+    const offer = await localConnection.createOffer();
+    await localConnection.setLocalDescription(offer);
+
+    displayOffer(offer);
   }
 
-  function loadPet() {
-    const saved = localStorage.getItem('tamagotchiPet');
-    if (saved) {
-      pet = JSON.parse(saved);
-      // Clamp values
-      pet.hunger = clamp(pet.hunger, 0, 100);
-      pet.happiness = clamp(pet.happiness, 0, 100);
-      pet.energy = clamp(pet.energy, 0, 100);
-      pet.sleeping = !!pet.sleeping;
+  // Set up local peer connection and listen for data channel for joiner
+  async function joinRoom(offer) {
+    isInitiator = false;
+    localConnection = new RTCPeerConnection(config);
+
+    localConnection.ondatachannel = e => {
+      dataChannel = e.channel;
+      setupDataChannel();
+    };
+
+    localConnection.onicecandidate = e => {
+      if (e.candidate) {
+        addIceCandidateToAnswer(e.candidate);
+      }
+    };
+
+    await localConnection.setRemoteDescription(offer);
+    const answer = await localConnection.createAnswer();
+    await localConnection.setLocalDescription(answer);
+
+    displayAnswer(answer);
+  }
+
+  // Data channel handlers
+  function setupDataChannel() {
+    dataChannel.onopen = () => {
+      logMessage("System", "Connected!");
+      roomInfo.textContent = "";
+      roomContainer.style.display = "none";
+      chatContainer.style.display = "flex";
+      inputMessage.focus();
+    };
+    dataChannel.onmessage = e => {
+      logMessage("Peer", e.data);
+    };
+    dataChannel.onclose = () => {
+      logMessage("System", "Connection closed.");
+      roomContainer.style.display = "block";
+      chatContainer.style.display = "none";
+    };
+  }
+
+  // Message log helper
+  function logMessage(sender, msg) {
+    const div = document.createElement('div');
+    div.classList.add('message');
+    div.classList.add(sender.toLowerCase());
+    div.textContent = `${sender}: ${msg}`;
+    messagesDiv.appendChild(div);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  }
+
+  // Send message handler
+  sendBtn.onclick = () => {
+    const msg = inputMessage.value.trim();
+    if (msg && dataChannel && dataChannel.readyState === 'open') {
+      dataChannel.send(msg);
+      logMessage("You", msg);
+      inputMessage.value = '';
+      inputMessage.focus();
     }
-  }
-
-  function clamp(num, min, max) {
-    return Math.min(Math.max(num, min), max);
-  }
-
-  // Update UI bars and face
-  function updateUI() {
-    hungerBar.style.width = pet.hunger + '%';
-    happinessBar.style.width = pet.happiness + '%';
-    energyBar.style.width = pet.energy + '%';
-
-    // Update pet face expression
-    if (pet.sleeping) {
-      petFace.textContent = '😴';
-      petFace.className = 'face-sleepy';
-    } else if (pet.hunger < 30) {
-      petFace.textContent = '😣';
-      petFace.className = 'face-hungry';
-    } else if (pet.happiness > 70) {
-      petFace.textContent = '😄';
-      petFace.className = 'face-happy';
-    } else if (pet.happiness < 30) {
-      petFace.textContent = '😞';
-      petFace.className = 'face-hungry';
-    } else {
-      petFace.textContent = '🙂';
-      petFace.className = 'face-happy';
-    }
-
-    // Enable/disable buttons when sleeping
-    feedBtn.disabled = pet.sleeping;
-    playBtn.disabled = pet.sleeping;
-    sleepBtn.disabled = pet.sleeping;
-
-    savePet();
-  }
-
-  // Show temporary message
-  function showMessage(text) {
-    messageEl.textContent = text;
-    setTimeout(() => {
-      if (messageEl.textContent === text) messageEl.textContent = '';
-    }, 3000);
-  }
-
-  // Actions
-  feedBtn.onclick = () => {
-    if (pet.sleeping) return;
-    pet.hunger += 20;
-    pet.hunger = clamp(pet.hunger, 0, 100);
-    showMessage('Yum! Thanks for feeding me! 🍎');
-    updateUI();
   };
 
-  playBtn.onclick = () => {
-    if (pet.sleeping) return;
-    if (pet.energy < 20) {
-      showMessage("I'm too tired to play... 😴");
+  inputMessage.addEventListener('keydown', e => {
+    if (e.key === "Enter") sendBtn.click();
+  });
+
+  // Display offer SDP and ICE candidates to share
+  let offerSDP = null;
+  let offerIceCandidates = [];
+
+  // Display answer SDP and ICE candidates to share
+  let answerSDP = null;
+  let answerIceCandidates = [];
+
+  // Show offer in a text box to copy
+  function displayOffer(offer) {
+    offerSDP = offer;
+    offerIceCandidates = [];
+    const offerJson = {
+      type: offer.type,
+      sdp: offer.sdp,
+      iceCandidates: []
+    };
+    roomInfo.innerHTML = `
+      <p>Share this Offer SDP with your friend:</p>
+      <textarea id="offer-text" rows="8" style="width:100%">${JSON.stringify(offerJson, null, 2)}</textarea>
+      <p>Paste Answer SDP from your friend here:</p>
+      <textarea id="answer-text" rows="8" style="width:100%"></textarea>
+      <button id="set-answer-btn">Set Answer</button>
+    `;
+
+    document.getElementById('set-answer-btn').onclick = () => {
+      const answerText = document.getElementById('answer-text').value;
+      if (!answerText) {
+        alert("Please paste the answer SDP JSON");
+        return;
+      }
+      let answerObj;
+      try {
+        answerObj = JSON.parse(answerText);
+      } catch {
+        alert("Invalid JSON");
+        return;
+      }
+      setAnswer(answerObj);
+    };
+  }
+
+  // Show answer SDP to joiner to share back
+  function displayAnswer(answer) {
+    answerSDP = answer;
+    answerIceCandidates = [];
+    roomInfo.innerHTML = `
+      <p>Share this Answer SDP back with the room creator:</p>
+      <textarea id="answer-text" rows="8" style="width:100%">${JSON.stringify({ type: answer.type, sdp: answer.sdp }, null, 2)}</textarea>
+    `;
+  }
+
+  // Add ICE candidate for offer peer
+  function addIceCandidateToOffer(candidate) {
+    // We could display these too, but for simplicity ignoring ICE candidates signaling here
+    // Advanced: You could also signal ICE candidates here by sharing text blocks like SDP
+  }
+
+  // Add ICE candidate for answer peer
+  function addIceCandidateToAnswer(candidate) {
+    // See comment above
+  }
+
+  // Set answer SDP on initiator side
+  async function setAnswer(answerObj) {
+    try {
+      await localConnection.setRemoteDescription(new RTCSessionDescription(answerObj));
+    } catch (e) {
+      alert("Error setting answer: " + e);
       return;
     }
-    pet.happiness += 20;
-    pet.energy -= 15;
-    pet.hunger -= 10;
-    pet.happiness = clamp(pet.happiness, 0, 100);
-    pet.energy = clamp(pet.energy, 0, 100);
-    pet.hunger = clamp(pet.hunger, 0, 100);
-    showMessage('That was fun! 🎾');
-    updateUI();
+  }
+
+  // Event handlers
+  createRoomBtn.onclick = () => {
+    createRoomBtn.disabled = true;
+    joinRoomBtn.disabled = true;
+    roomIdInput.disabled = true;
+    createRoom();
   };
 
-  sleepBtn.onclick = () => {
-    if (pet.sleeping) return;
-    pet.sleeping = true;
-    showMessage('Going to sleep... 💤');
-    updateUI();
-
-    // Sleep for 10 seconds (simulate)
-    setTimeout(() => {
-      pet.sleeping = false;
-      pet.energy += 50;
-      pet.energy = clamp(pet.energy, 0, 100);
-      showMessage("I'm awake and rested! 😄");
-      updateUI();
-    }, 10000);
-  };
-
-  // Automatic stat decay every 15 seconds
-  setInterval(() => {
-    if (!pet.sleeping) {
-      pet.hunger -= 5;    // gets hungrier
-      pet.happiness -= 3; // gets sadder
-      pet.energy -= 4;    // loses energy
-      pet.hunger = clamp(pet.hunger, 0, 100);
-      pet.happiness = clamp(pet.happiness, 0, 100);
-      pet.energy = clamp(pet.energy, 0, 100);
-      updateUI();
+  joinRoomBtn.onclick = async () => {
+    const text = roomIdInput.value.trim();
+    if (!text) {
+      alert("Paste the Offer SDP JSON in the input box to join");
+      return;
     }
-  }, 15000);
+    joinRoomBtn.disabled = true;
+    createRoomBtn.disabled = true;
+    roomIdInput.disabled = true;
 
-  loadPet();
-  updateUI();
+    let offerObj;
+    try {
+      offerObj = JSON.parse(text);
+    } catch {
+      alert("Invalid JSON in input");
+      joinRoomBtn.disabled = false;
+      createRoomBtn.disabled = false;
+      roomIdInput.disabled = false;
+      return;
+    }
+
+    await joinRoom(offerObj);
+  };
 </script>
 
 </body>
